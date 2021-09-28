@@ -7,6 +7,8 @@ use crate::OPERATION_TIMEOUT;
 use crate::STAKING_TOKEN;
 use crate::STARTING_STAKE_PER_VALIDATOR;
 use crate::TOTAL_TIMEOUT;
+use crate::MINER_ADDRESS;
+use crate::MINER_PRIVATE_KEY;
 use clarity::{Address as EthAddress, Uint256};
 use cosmos_gravity::query::get_last_event_nonce_for_validator;
 use cosmos_gravity::send::MEMO;
@@ -67,7 +69,7 @@ pub async fn unhalt_bridge_test(
     redistribute_stake(&keys, contact, &prefix).await;
 
     // Test a deposit to increment the event nonce before false claims happen
-    test_erc20_deposit(
+    let success = test_erc20_deposit(
         web30,
         contact,
         &mut grpc_client,
@@ -75,8 +77,12 @@ pub async fn unhalt_bridge_test(
         gravity_address,
         erc20_address,
         10_000_000_000_000_000u64.into(),
+        None,
     )
     .await;
+    if !success {
+        panic!("Failed to bridge ERC20!")
+    }
 
     let fee = Fee {
         amount: vec![get_fee()],
@@ -128,15 +134,12 @@ pub async fn unhalt_bridge_test(
         val2_nonce == initial_valid_nonce + 1 && val2_nonce == val3_nonce,
         "The false claims validators do not have updated nonces"
     );
-    assert!(
-        val1_nonce == initial_valid_nonce,
-        "The honest validator should not have an updated nonce!"
-    );
+    assert_eq!( val1_nonce, initial_valid_nonce, "The honest validator should not have an updated nonce!" );
 
     info!("Checking that bridge is halted!");
 
     // Attempt transaction on halted bridge
-    let should_fail = test_erc20_deposit(
+    let success = test_erc20_deposit(
         web30,
         contact,
         &mut grpc_client,
@@ -144,13 +147,15 @@ pub async fn unhalt_bridge_test(
         gravity_address,
         erc20_address,
         Uint256::from_str("100_000_000_000_000_000").unwrap(),
+        Some(Duration::from_secs(30)),
     )
     .await;
+    if success {
+        panic!("bridge not halted!")
+    }
 
     sleep(Duration::from_secs(30));
-    // if should_fail.is_ok() {
-    //     panic!("Expected bridge to be locked, but test_erc20_deposit succeeded!");
-    // }
+
     info!("Getting latest nonce after bridge halt check");
     let (val1_nonce, val2_nonce, val3_nonce) = get_nonces(&mut grpc_client, &keys, &prefix).await;
     info!(
@@ -195,7 +200,7 @@ pub async fn unhalt_bridge_test(
         } else {
             info!(
                 "New nonces: {}=>{}, {}=>{}, {}=>{}, sleeping before retry",
-                new_val1_nonce, val1_nonce, new_val2_nonce, val2_nonce, new_val3_nonce, val3_nonce
+                val1_nonce, new_val1_nonce, val2_nonce, new_val2_nonce, val3_nonce, new_val3_nonce
             );
             break;
         }
@@ -219,8 +224,6 @@ pub async fn unhalt_bridge_test(
     //     gravity_address,
     //     no_relay_market_config.clone(),
     // );
-    info!("Sleeping to see if any other stuff happens on the network");
-    sleep(Duration::from_secs(60));
 
     info!("Attempting to resend now that the bridge should be fixed");
     let res = test_erc20_deposit(
@@ -231,8 +234,13 @@ pub async fn unhalt_bridge_test(
         gravity_address,
         erc20_address,
         Uint256::from_str("100_000_000_000_000_000").unwrap(),
+        Some(Duration::from_secs(30)),
     )
     .await;
+    if !res {
+        panic!("Failed to bridge ERC20!")
+    }
+
     info!("res is {:?}", res);
 }
 

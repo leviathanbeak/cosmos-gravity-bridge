@@ -29,6 +29,7 @@ use std::time::Instant;
 use tokio::time::sleep as delay_for;
 use tonic::transport::Channel;
 use web30::client::Web3;
+use cosmos_gravity::query::get_last_event_nonce_for_validator;
 
 /// The execution speed governing all loops in this file
 /// which is to say all loops started by Orchestrator main
@@ -109,12 +110,31 @@ pub async fn eth_oracle_main_loop(
         &long_timeout_web30,
     )
     .await;
+    let mut last_checked_event: Uint256 = 0u8.into();
     info!("Oracle resync complete, Oracle now operational");
     let mut grpc_client = grpc_client;
 
     loop {
         let loop_start = Instant::now();
 
+        // TODO: Don't unwrap here, although this might be indicative of an error situation
+        let last_checked_event_module = get_last_event_nonce_for_validator(
+            &mut grpc_client.clone(),
+            our_cosmos_address,
+            contact.get_prefix(),
+        ).await.unwrap();
+        if last_checked_event > last_checked_event_module.into() {
+            info!("Discrepancy between module and orchestrator, last relayed events were from block \
+            {} but module says {}. Governance unhalt vote must have happened, resetting the block to check!",
+                last_checked_block, last_checked_event_module);
+            last_checked_block = get_last_checked_block(
+                grpc_client.clone(),
+                our_cosmos_address,
+                contact.get_prefix(),
+                gravity_contract_address,
+                &web3
+            ).await;
+        }
         let latest_eth_block = web3.eth_block_number().await;
         let latest_cosmos_block = contact.get_chain_status().await;
         match (latest_eth_block, latest_cosmos_block) {
@@ -164,7 +184,10 @@ pub async fn eth_oracle_main_loop(
         )
         .await
         {
-            Ok(new_block) => last_checked_block = new_block,
+            Ok(nonces) => {
+                last_checked_block = nonces.block_number;
+                last_checked_event = nonces.event_nonce;
+            },
             Err(e) => error!(
                 "Failed to get events for block range, Check your Eth node and Cosmos gRPC {:?}",
                 e

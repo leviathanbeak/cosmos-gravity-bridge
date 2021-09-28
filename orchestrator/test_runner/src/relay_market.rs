@@ -117,7 +117,7 @@ async fn setup_batch_test(
 
     // Send the generated address 300 dai from ethereum to cosmos
     for _ in 0u32..3 {
-        test_erc20_deposit(
+        let success = test_erc20_deposit(
             web30,
             contact,
             &mut grpc_client,
@@ -125,8 +125,13 @@ async fn setup_batch_test(
             gravity_address,
             erc20_contract,
             one_eth() * 100u64.into(),
+            None,
         )
         .await;
+
+        if !success {
+            panic!("Failed to bridge ERC20!")
+        }
     }
 
     // Send the validator 100 dai for later
@@ -134,7 +139,7 @@ async fn setup_batch_test(
     let requester_address = requester_cosmos_private_key
         .to_address(&contact.get_prefix())
         .unwrap();
-    test_erc20_deposit(
+    let success = test_erc20_deposit(
         web30,
         contact,
         &mut grpc_client,
@@ -142,8 +147,12 @@ async fn setup_batch_test(
         gravity_address,
         erc20_contract,
         one_eth() * 100u64.into(),
+        None,
     )
     .await;
+    if !success {
+        panic!("Failed to bridge ERC20!")
+    }
     let cdai_held = check_cosmos_balance("gravity", dest_cosmos_address, contact)
         .await
         .unwrap();

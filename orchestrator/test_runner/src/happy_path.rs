@@ -8,13 +8,14 @@ use crate::STARTING_STAKE_PER_VALIDATOR;
 use crate::TOTAL_TIMEOUT;
 use bytes::BytesMut;
 use clarity::{Address as EthAddress, Uint256};
-use cosmos_gravity::query::get_attestations;
+use cosmos_gravity::query::{get_attestations, get_last_event_nonce_for_validator};
 use cosmos_gravity::send::{send_request_batch, send_to_eth};
 use cosmos_gravity::{query::get_oldest_unsigned_transaction_batch, send::send_ethereum_claims};
 use deep_space::address::Address as CosmosAddress;
 use deep_space::coin::Coin;
 use deep_space::private_key::PrivateKey as CosmosPrivateKey;
 use deep_space::Contact;
+use deep_space::client::ChainStatus;
 use ethereum_gravity::utils::get_event_nonce;
 use ethereum_gravity::utils::get_valset_nonce;
 use ethereum_gravity::{send_to_cosmos::send_to_cosmos, utils::get_tx_batch_nonce};
@@ -77,7 +78,7 @@ pub async fn happy_path_test(
     // so the denom is the gravity<hash> token name
     // Send a token 3 times
     for _ in 0u32..3 {
-        test_erc20_deposit(
+        let success = test_erc20_deposit(
             web30,
             contact,
             &mut grpc_client,
@@ -85,8 +86,13 @@ pub async fn happy_path_test(
             gravity_address,
             erc20_address,
             100u64.into(),
+            None,
         )
         .await;
+
+        if !success {
+            panic!("Failed to bridge ERC20!")
+        }
     }
 
     let event_nonce = get_event_nonce(gravity_address, *MINER_ADDRESS, web30)
@@ -301,13 +307,15 @@ pub async fn test_erc20_deposit(
     gravity_address: EthAddress,
     erc20_address: EthAddress,
     amount: Uint256,
-) {
+    timeout: Option<Duration>,
+) -> bool {
     get_valset_nonce(gravity_address, *MINER_ADDRESS, web30)
         .await
         .expect("Incorrect Gravity Address or otherwise unable to contact Gravity");
 
     let mut grpc_client = grpc_client.clone();
     let start_coin = check_cosmos_balance("gravity", dest, contact).await;
+
     info!(
         "Sending to Cosmos from {} to {} with amount {}",
         *MINER_ADDRESS, dest, amount
@@ -335,7 +343,11 @@ pub async fn test_erc20_deposit(
         .expect("Send to cosmos transaction failed to be included into ethereum side");
 
     let start = Instant::now();
-    while Instant::now() - start < TOTAL_TIMEOUT {
+    let duration = match timeout {
+        Some(w) => { w }
+        None => { TOTAL_TIMEOUT }
+    };
+    while Instant::now() - start < duration {
         match (
             start_coin.clone(),
             check_cosmos_balance("gravity", dest, contact).await,
@@ -348,7 +360,7 @@ pub async fn test_erc20_deposit(
                         "Successfully bridged ERC20 {}{} to Cosmos! Balance is now {}{}",
                         amount, start_coin.denom, end_coin.amount, end_coin.denom
                     );
-                    return;
+                    return true;
                 }
             }
             (None, Some(end_coin)) => {
@@ -357,7 +369,7 @@ pub async fn test_erc20_deposit(
                         "Successfully bridged ERC20 {}{} to Cosmos! Balance is now {}{}",
                         amount, end_coin.denom, end_coin.amount, end_coin.denom
                     );
-                    return;
+                    return true;
                 } else {
                     panic!("Failed to bridge ERC20!")
                 }
@@ -367,7 +379,7 @@ pub async fn test_erc20_deposit(
         info!("Waiting for ERC20 deposit");
         contact.wait_for_next_block(TOTAL_TIMEOUT).await.unwrap();
     }
-    panic!("Failed to bridge ERC20!")
+    return false;
 }
 
 // Tries up to TOTAL_TIMEOUT time to find a MsgSendToCosmosClaim attestation created in the

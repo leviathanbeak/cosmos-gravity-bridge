@@ -29,7 +29,7 @@ pub async fn send_to_eth_and_cancel(
     // a pair of cosmos and Ethereum keys + addresses to use for this test
     let user_keys = get_user_key();
 
-    test_erc20_deposit(
+    let success = test_erc20_deposit(
         web30,
         contact,
         &mut grpc_client,
@@ -37,8 +37,12 @@ pub async fn send_to_eth_and_cancel(
         gravity_address,
         erc20_address,
         one_eth(),
+        None,
     )
     .await;
+    if !success {
+        panic!("Failed to bridge ERC20!")
+    }
 
     let token_name = format!("gravity{}", erc20_address);
 
