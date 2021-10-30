@@ -17,6 +17,7 @@ use env_logger::Env;
 use keys::register_orchestrator_address::register_orchestrator_address;
 use keys::set_eth_key;
 use keys::set_orchestrator_key;
+use std::process::exit;
 
 mod args;
 mod client;
@@ -71,7 +72,10 @@ async fn main() {
             }
         },
         SubCommand::Orchestrator(orchestrator_opts) => {
-            orchestrator(orchestrator_opts, address_prefix, &home_dir, config).await
+            if let Err(_) = orchestrator(orchestrator_opts, address_prefix, &home_dir, config).await
+            {
+                exit(1);
+            }
         }
         SubCommand::Relayer(relayer_opts) => {
             relayer(relayer_opts, address_prefix, &home_dir, &config.relayer).await
