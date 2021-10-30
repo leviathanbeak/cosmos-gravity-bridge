@@ -25,7 +25,8 @@ use gravity_proto::gravity::MsgValsetUpdatedClaim;
 use gravity_proto::gravity::{MsgBatchSendToEthClaim, MsgSubmitBadSignatureEvidence};
 use gravity_proto::gravity::{MsgCancelSendToEth, MsgConfirmBatch};
 use gravity_utils::types::*;
-use std::{collections::HashMap, time::Duration};
+use std::collections::BTreeMap;
+use std::time::Duration;
 
 use crate::utils::BadSignatureEvidence;
 
@@ -262,8 +263,8 @@ pub async fn send_ethereum_claims(
     // would require a truly horrendous (nearly 100 line) match statement to deal with all combinations. That match statement
     // could be reduced by adding two traits to sort against but really this is the easiest option.
     //
-    // We index the events by event nonce in an unordered hashmap and then play them back in order into a vec
-    let mut unordered_msgs = HashMap::new();
+    // We index the events by event nonce in a sorted hashmap, skipping the need to sort it later
+    let mut unordered_msgs = BTreeMap::new();
     for deposit in deposits {
         let claim = MsgSendToCosmosClaim {
             event_nonce: deposit.event_nonce,
@@ -329,16 +330,8 @@ pub async fn send_ethereum_claims(
         let msg = Msg::new("/gravity.v1.MsgValsetUpdatedClaim", claim);
         unordered_msgs.insert(valset.event_nonce, msg);
     }
-    let mut keys = Vec::new();
-    for (key, _) in unordered_msgs.iter() {
-        keys.push(*key);
-    }
-    keys.sort_unstable();
 
-    let mut msgs = Vec::new();
-    for i in keys {
-        msgs.push(unordered_msgs.remove_entry(&i).unwrap().1);
-    }
+    let msgs: Vec<Msg> = unordered_msgs.into_iter().map(|(_, v)| v).collect();
 
     let fee = Fee {
         amount: vec![fee],
