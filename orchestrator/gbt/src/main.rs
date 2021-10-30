@@ -45,13 +45,20 @@ async fn main() {
     match opts.subcmd {
         SubCommand::Client(client_opts) => match client_opts.subcmd {
             ClientSubcommand::EthToCosmos(eth_to_cosmos_opts) => {
-                eth_to_cosmos(eth_to_cosmos_opts, address_prefix).await
+                if let Err(_) = eth_to_cosmos(eth_to_cosmos_opts, address_prefix).await {
+                    exit(1);
+                }
             }
             ClientSubcommand::CosmosToEth(cosmos_to_eth_opts) => {
-                cosmos_to_eth(cosmos_to_eth_opts, address_prefix).await
+                if let Err(_) = cosmos_to_eth(cosmos_to_eth_opts, address_prefix).await {
+                    exit(1);
+                }
             }
             ClientSubcommand::DeployErc20Representation(deploy_erc20_opts) => {
-                deploy_erc20_representation(deploy_erc20_opts, address_prefix).await
+                if let Err(_) = deploy_erc20_representation(deploy_erc20_opts, address_prefix).await
+                {
+                    exit(1);
+                }
             }
         },
         SubCommand::Keys(key_opts) => match key_opts.subcmd {
