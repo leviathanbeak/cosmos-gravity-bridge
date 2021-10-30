@@ -264,7 +264,7 @@ pub async fn send_ethereum_claims(
     // could be reduced by adding two traits to sort against but really this is the easiest option.
     //
     // We index the events by event nonce in a sorted hashmap, skipping the need to sort it later
-    let mut unordered_msgs = BTreeMap::new();
+    let mut ordered_msgs = BTreeMap::new();
     for deposit in deposits {
         let claim = MsgSendToCosmosClaim {
             event_nonce: deposit.event_nonce,
@@ -276,7 +276,7 @@ pub async fn send_ethereum_claims(
             orchestrator: our_address.to_string(),
         };
         let msg = Msg::new("/gravity.v1.MsgSendToCosmosClaim", claim);
-        unordered_msgs.insert(deposit.event_nonce, msg);
+        ordered_msgs.insert(deposit.event_nonce, msg);
     }
     for withdraw in withdraws {
         let claim = MsgBatchSendToEthClaim {
@@ -287,7 +287,7 @@ pub async fn send_ethereum_claims(
             orchestrator: our_address.to_string(),
         };
         let msg = Msg::new("/gravity.v1.MsgBatchSendToEthClaim", claim);
-        unordered_msgs.insert(withdraw.event_nonce, msg);
+        ordered_msgs.insert(withdraw.event_nonce, msg);
     }
     for deploy in erc20_deploys {
         let claim = MsgErc20DeployedClaim {
@@ -301,7 +301,7 @@ pub async fn send_ethereum_claims(
             orchestrator: our_address.to_string(),
         };
         let msg = Msg::new("/gravity.v1.MsgERC20DeployedClaim", claim);
-        unordered_msgs.insert(deploy.event_nonce, msg);
+        ordered_msgs.insert(deploy.event_nonce, msg);
     }
     for call in logic_calls {
         let claim = MsgLogicCallExecutedClaim {
@@ -312,7 +312,7 @@ pub async fn send_ethereum_claims(
             orchestrator: our_address.to_string(),
         };
         let msg = Msg::new("/gravity.v1.MsgLogicCallExecutedClaim", claim);
-        unordered_msgs.insert(call.event_nonce, msg);
+        ordered_msgs.insert(call.event_nonce, msg);
     }
     for valset in valsets {
         let claim = MsgValsetUpdatedClaim {
@@ -328,10 +328,10 @@ pub async fn send_ethereum_claims(
             orchestrator: our_address.to_string(),
         };
         let msg = Msg::new("/gravity.v1.MsgValsetUpdatedClaim", claim);
-        unordered_msgs.insert(valset.event_nonce, msg);
+        ordered_msgs.insert(valset.event_nonce, msg);
     }
 
-    let msgs: Vec<Msg> = unordered_msgs.into_iter().map(|(_, v)| v).collect();
+    let msgs: Vec<Msg> = ordered_msgs.into_iter().map(|(_, v)| v).collect();
 
     let fee = Fee {
         amount: vec![fee],
