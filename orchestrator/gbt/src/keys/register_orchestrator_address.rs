@@ -7,18 +7,20 @@ use crate::config::load_keys;
 use crate::config::save_keys;
 use crate::config::KeyStorage;
 use crate::utils::TIMEOUT;
+use anyhow::Result;
 use clarity::PrivateKey as EthPrivateKey;
 use cosmos_gravity::send::set_gravity_delegate_addresses;
 use deep_space::{mnemonic::Mnemonic, private_key::PrivateKey as CosmosPrivateKey};
 use gravity_utils::connection_prep::check_for_fee;
 use gravity_utils::connection_prep::{create_rpc_connections, wait_for_cosmos_node_ready};
+use gravity_utils::error::ValidityCheckError;
 use rand::{thread_rng, Rng};
 
 pub async fn register_orchestrator_address(
     args: RegisterOrchestratorAddressOpts,
     prefix: String,
     home_dir: PathBuf,
-) {
+) -> Result<()> {
     let fee = args.fees;
     let cosmos_grpc = args.cosmos_grpc;
     let validator_key = args.validator_phrase;
@@ -28,7 +30,7 @@ pub async fn register_orchestrator_address(
 
     if !args.no_save && !config_exists(&home_dir) {
         error!("Please run `gbt init` before running this command!");
-        exit(1);
+        return Err(ValidityCheckError::ConfigDoesNotExist.into());
     }
 
     let connections = create_rpc_connections(prefix, Some(cosmos_grpc), None, TIMEOUT).await;
@@ -36,7 +38,7 @@ pub async fn register_orchestrator_address(
     wait_for_cosmos_node_ready(&contact).await;
 
     let validator_addr = validator_key.to_address(&contact.get_prefix()).unwrap();
-    check_for_fee(&fee, validator_addr, &contact).await;
+    check_for_fee(&fee, validator_addr, &contact).await?;
 
     // Set the cosmos key to either the cli value, the value in the config, or a generated
     // value if the config has not been setup
@@ -135,4 +137,6 @@ pub async fn register_orchestrator_address(
         };
         save_keys(&home_dir, new_keys);
     }
+
+    Ok(())
 }

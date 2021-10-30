@@ -1,13 +1,14 @@
 use crate::args::OrchestratorOpts;
 use crate::config::config_exists;
 use crate::config::load_keys;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use cosmos_gravity::query::get_gravity_params;
 use deep_space::PrivateKey as CosmosPrivateKey;
 use gravity_utils::connection_prep::{
     check_delegate_addresses, check_for_eth, wait_for_cosmos_node_ready,
 };
 use gravity_utils::connection_prep::{check_for_fee, create_rpc_connections};
+use gravity_utils::error::ValidityCheckError;
 use gravity_utils::types::GravityBridgeToolsConfig;
 use orchestrator::main_loop::orchestrator_main_loop;
 use orchestrator::main_loop::{ETH_ORACLE_LOOP_SPEED, ETH_SIGNER_LOOP_SPEED};
@@ -42,7 +43,7 @@ pub async fn orchestrator(
             error!("To generate, register, and store a key use `gbt keys register-orchestrator-address`");
             error!("Store an already registered key using 'gbt keys set-orchestrator-key`");
             error!("To run from the command line, with no key storage use 'gbt orchestrator --cosmos-phrase your phrase' ");
-            return Err(anyhow!("You must specify a Cosmos key phrase!"));
+            return Err(ValidityCheckError::CosmosPhraseNotSpecified.into());
         }
         k.unwrap()
     };
@@ -61,7 +62,7 @@ pub async fn orchestrator(
             error!("To generate, register, and store a key use `gbt keys register-orchestrator-address`");
             error!("Store an already registered key using 'gbt keys set-ethereum-key`");
             error!("To run from the command line, with no key storage use 'gbt orchestrator --ethereum-key your key' ");
-            return Err(anyhow!("You must specify an Ethereum key!"));
+            return Err(ValidityCheckError::EthereumKeyNotSpecified.into());
         }
         k.unwrap()
     };
@@ -121,9 +122,7 @@ pub async fn orchestrator(
         let c = params.bridge_ethereum_address.parse();
         if c.is_err() {
             error!("The Gravity address is not yet set as a chain parameter! You must specify --gravity-contract-address");
-            return Err(anyhow!(
-                "The Gravity address is not yet set as a chain parameter!"
-            ));
+            return Err(ValidityCheckError::GravityAddressNotYetSet.into());
         }
         c.unwrap()
     };

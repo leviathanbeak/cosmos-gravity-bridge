@@ -14,6 +14,7 @@ use tonic::Status;
 use web30::jsonrpc::error::Web3Error;
 
 #[derive(Error, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum ValidityCheckError {
     #[error("Your Delegate Ethereum and Orchestrator addresses are both incorrect!")]
     EthreumOrchestratorAddressesIncorrect {
@@ -49,6 +50,14 @@ pub enum ValidityCheckError {
     },
     #[error("You don't have any Ethereum!")]
     EthereumBalanceZero,
+    #[error("You must specify an Ethereum key!")]
+    EthereumKeyNotSpecified,
+    #[error("You must specify a Cosmos key phrase!")]
+    CosmosPhraseNotSpecified,
+    #[error("The Gravity address is not yet set as a chain parameter!")]
+    GravityAddressNotYetSet,
+    #[error("Please run `gbt init` before running this command!")]
+    ConfigDoesNotExist,
 }
 
 #[derive(Error, Debug)]

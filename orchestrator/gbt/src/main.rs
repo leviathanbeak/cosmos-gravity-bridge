@@ -56,12 +56,15 @@ async fn main() {
         },
         SubCommand::Keys(key_opts) => match key_opts.subcmd {
             KeysSubcommand::RegisterOrchestratorAddress(set_orchestrator_address_opts) => {
-                register_orchestrator_address(
+                if let Err(_) = register_orchestrator_address(
                     set_orchestrator_address_opts,
                     address_prefix,
                     home_dir,
                 )
                 .await
+                {
+                    exit(1)
+                }
             }
             KeysSubcommand::Show => show_keys(&home_dir, &address_prefix),
             KeysSubcommand::SetEthereumKey(set_eth_key_opts) => {
@@ -78,7 +81,10 @@ async fn main() {
             }
         }
         SubCommand::Relayer(relayer_opts) => {
-            relayer(relayer_opts, address_prefix, &home_dir, &config.relayer).await
+            if let Err(_) = relayer(relayer_opts, address_prefix, &home_dir, &config.relayer).await
+            {
+                exit(1);
+            }
         }
         SubCommand::Init(init_opts) => init_config(init_opts, home_dir),
     }
