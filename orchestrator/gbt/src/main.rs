@@ -42,57 +42,52 @@ async fn main() {
     let config = load_config(&home_dir);
 
     // control flow for the command structure
-    match opts.subcmd {
+    if let Err(_) = match opts.subcmd {
         SubCommand::Client(client_opts) => match client_opts.subcmd {
             ClientSubcommand::EthToCosmos(eth_to_cosmos_opts) => {
-                if let Err(_) = eth_to_cosmos(eth_to_cosmos_opts, address_prefix).await {
-                    exit(1);
-                }
+                eth_to_cosmos(eth_to_cosmos_opts, address_prefix).await
             }
+
             ClientSubcommand::CosmosToEth(cosmos_to_eth_opts) => {
-                if let Err(_) = cosmos_to_eth(cosmos_to_eth_opts, address_prefix).await {
-                    exit(1);
-                }
+                cosmos_to_eth(cosmos_to_eth_opts, address_prefix).await
             }
             ClientSubcommand::DeployErc20Representation(deploy_erc20_opts) => {
-                if let Err(_) = deploy_erc20_representation(deploy_erc20_opts, address_prefix).await
-                {
-                    exit(1);
-                }
+                deploy_erc20_representation(deploy_erc20_opts, address_prefix).await
             }
         },
         SubCommand::Keys(key_opts) => match key_opts.subcmd {
             KeysSubcommand::RegisterOrchestratorAddress(set_orchestrator_address_opts) => {
-                if let Err(_) = register_orchestrator_address(
+                register_orchestrator_address(
                     set_orchestrator_address_opts,
                     address_prefix,
                     home_dir,
                 )
                 .await
-                {
-                    exit(1)
-                }
             }
-            KeysSubcommand::Show => show_keys(&home_dir, &address_prefix),
+            KeysSubcommand::Show => {
+                show_keys(&home_dir, &address_prefix);
+                Ok(())
+            }
             KeysSubcommand::SetEthereumKey(set_eth_key_opts) => {
-                set_eth_key(&home_dir, set_eth_key_opts)
+                set_eth_key(&home_dir, set_eth_key_opts);
+                Ok(())
             }
             KeysSubcommand::SetOrchestratorKey(set_orch_key_opts) => {
-                set_orchestrator_key(&home_dir, set_orch_key_opts)
+                set_orchestrator_key(&home_dir, set_orch_key_opts);
+                Ok(())
             }
         },
         SubCommand::Orchestrator(orchestrator_opts) => {
-            if let Err(_) = orchestrator(orchestrator_opts, address_prefix, &home_dir, config).await
-            {
-                exit(1);
-            }
+            orchestrator(orchestrator_opts, address_prefix, &home_dir, config).await
         }
         SubCommand::Relayer(relayer_opts) => {
-            if let Err(_) = relayer(relayer_opts, address_prefix, &home_dir, &config.relayer).await
-            {
-                exit(1);
-            }
+            relayer(relayer_opts, address_prefix, &home_dir, &config.relayer).await
         }
-        SubCommand::Init(init_opts) => init_config(init_opts, home_dir),
+        SubCommand::Init(init_opts) => {
+            init_config(init_opts, home_dir);
+            Ok(())
+        }
+    } {
+        exit(1);
     }
 }
