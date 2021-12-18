@@ -1225,7 +1225,6 @@ dependencies = [
 name = "gbt"
 version = "0.5.6"
 dependencies = [
- "actix-rt 2.2.0",
  "clap",
  "clarity",
  "cosmos_gravity",
@@ -1984,7 +1983,6 @@ dependencies = [
 name = "orchestrator"
 version = "0.4.3"
 dependencies = [
- "actix-rt 2.2.0",
  "clarity",
  "cosmos_gravity",
  "deep_space",
@@ -2438,7 +2436,6 @@ name = "relayer"
 version = "0.4.3"
 dependencies = [
  "actix",
- "actix-rt 2.2.0",
  "clarity",
  "cosmos_gravity",
  "deep_space",
@@ -3025,6 +3022,7 @@ dependencies = [
  "libc",
  "memchr",
  "mio 0.7.13",
+ "num_cpus",
  "once_cell",
  "parking_lot",
  "pin-project-lite 0.2.7",
