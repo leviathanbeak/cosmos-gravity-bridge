@@ -52,7 +52,13 @@ These are mid-level docs which go into the most detail on various topics relatin
 
 [relaying semantics](/docs/design/relaying-semantics.md)
 
-### Developer Guide
+**Components diagram**
+
+<p align="left">
+  <img src="https://user-images.githubusercontent.com/6096171/123229727-3ceea380-d4df-11eb-818c-3c996d9199aa.png?raw=true"/>
+</p>
+
+### Specs
 
 To contribute to Gravity, refer to these guides.
 
