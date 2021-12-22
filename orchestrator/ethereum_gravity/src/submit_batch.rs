@@ -130,7 +130,7 @@ fn encode_batch_payload(
 ) -> Result<Vec<u8>, GravityError> {
     let current_valset_token = encode_valset_struct(&current_valset);
     let new_batch_nonce = batch.nonce;
-    let hash = encode_tx_batch_confirm_hashed(gravity_id, batch.clone());
+    let hash = encode_tx_batch_confirm_hashed(gravity_id, batch);
     let sig_data = current_valset.order_sigs(&hash, confirms)?;
     let sig_arrays = to_arrays(sig_data);
     let (amounts, destinations, fees) = batch.get_checkpoint_values();

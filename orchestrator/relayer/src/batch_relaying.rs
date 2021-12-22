@@ -82,12 +82,14 @@ async fn get_batches_and_signatures(
 
     let mut possible_batches = HashMap::new();
     for batch in latest_batches {
-        let sigs =
+        let signatures =
             get_transaction_batch_signatures(grpc_client, batch.nonce, batch.token_contract).await;
-        trace!("Got sigs {:?}", sigs);
-        if let Ok(sigs) = sigs {
+
+        trace!("Got signatures {:?}", signatures);
+
+        if let Ok(sigs) = signatures {
             // this checks that the signatures for the batch are actually possible to submit to the chain
-            let hash = encode_tx_batch_confirm_hashed(gravity_id.clone(), batch.clone());
+            let hash = encode_tx_batch_confirm_hashed(gravity_id.clone(), &batch);
             if current_valset.order_sigs(&hash, &sigs).is_ok() {
                 // we've found a valid batch, add it to the list for it's token type
                 possible_batches
@@ -105,7 +107,7 @@ async fn get_batches_and_signatures(
         } else {
             error!(
                 "could not get signatures for {}:{} with {:?}",
-                batch.token_contract, batch.nonce, sigs
+                batch.token_contract, batch.nonce, signatures
             );
         }
     }
