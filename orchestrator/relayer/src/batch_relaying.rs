@@ -43,7 +43,7 @@ pub async fn relay_batches(
     config: &RelayerConfig,
 ) {
     let possible_batches =
-        get_batches_and_signatures(&current_valset, grpc_client, gravity_id.clone()).await;
+        get_batches_and_signatures(current_valset, grpc_client, gravity_id.clone()).await;
 
     trace!("possible batches {:?}", possible_batches);
 
@@ -243,7 +243,7 @@ async fn submit_batches(
                 let latest_cosmos_batch_nonce = oldest_signed_batch.clone().nonce;
                 if latest_cosmos_batch_nonce > latest_ethereum_batch {
                     let cost = ethereum_gravity::submit_batch::estimate_tx_batch_cost(
-                        &current_valset,
+                        current_valset,
                         oldest_signed_batch.clone(),
                         &oldest_signatures,
                         web3,
@@ -280,7 +280,7 @@ async fn submit_batches(
                     };
                     if should_relay {
                         let res = send_eth_transaction_batch(
-                            &current_valset,
+                            current_valset,
                             oldest_signed_batch,
                             &oldest_signatures,
                             web3,
