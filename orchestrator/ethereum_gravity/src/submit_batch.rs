@@ -128,7 +128,7 @@ fn encode_batch_payload(
     confirms: &[BatchConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {
-    let current_valset_token = encode_valset_struct(&current_valset);
+    let current_valset_token = encode_valset_struct(current_valset);
     let new_batch_nonce = batch.nonce;
     let hash = encode_tx_batch_confirm_hashed(gravity_id, batch);
     let sig_data = current_valset.order_sigs(&hash, confirms)?;

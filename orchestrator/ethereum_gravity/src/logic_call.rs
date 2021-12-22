@@ -131,7 +131,7 @@ fn encode_logic_call_payload(
     confirms: &[LogicCallConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {
-    let current_valset_token = encode_valset_struct(&current_valset);
+    let current_valset_token = encode_valset_struct(current_valset);
     let hash = encode_logic_call_confirm_hashed(gravity_id, call.clone());
     let sig_data = current_valset.order_sigs(&hash, confirms)?;
     let sig_arrays = to_arrays(sig_data);

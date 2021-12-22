@@ -113,8 +113,8 @@ pub fn encode_valset_update_payload(
     confirms: &[ValsetConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {
-    let new_valset_token = encode_valset_struct(&new_valset);
-    let old_valset_token = encode_valset_struct(&old_valset);
+    let new_valset_token = encode_valset_struct(new_valset);
+    let old_valset_token = encode_valset_struct(old_valset);
 
     // remember the signatures are over the new valset and therefore this is the value we must encode
     // the old valset exists only as a hash in the ethereum store

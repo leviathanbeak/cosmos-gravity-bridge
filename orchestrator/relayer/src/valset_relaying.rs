@@ -230,7 +230,7 @@ async fn relay_valid_valset(
         );
 
     let should_relay = if *enable_relay_market {
-        should_relay_valset(&latest_cosmos_valset, &ethereum_key, cost, web3).await
+        should_relay_valset(latest_cosmos_valset, &ethereum_key, cost, web3).await
     } else {
         true // Default to relaying if the relay market is disabled
     };
@@ -291,7 +291,7 @@ pub async fn relay_valsets(
 
     let (latest_valset, latest_confirmed, last_error) = find_latest_valid_valset(
         &latest_valsets[0].nonce,
-        &current_valset,
+        current_valset,
         grpc_client,
         &gravity_id,
     )
@@ -325,7 +325,7 @@ pub async fn relay_valsets(
     if latest_cosmos_valset.nonce > current_valset.nonce {
         relay_valid_valset(
             &latest_cosmos_valset,
-            &current_valset,
+            current_valset,
             latest_cosmos_confirmed,
             web3,
             gravity_contract_address,
