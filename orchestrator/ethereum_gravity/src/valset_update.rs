@@ -12,8 +12,8 @@ use web30::{client::Web3, types::TransactionRequest};
 /// to submit the provided validator set and signatures.
 #[allow(clippy::too_many_arguments)]
 pub async fn send_eth_valset_update(
-    new_valset: Valset,
-    old_valset: Valset,
+    new_valset: &Valset,
+    old_valset: &Valset,
     confirms: &[ValsetConfirmResponse],
     web3: &Web3,
     timeout: Duration,
@@ -94,13 +94,7 @@ pub async fn estimate_valset_cost(
             gas: Some(gas_limit.into()),
             value: Some(zero.into()),
             data: Some(
-                encode_valset_update_payload(
-                    new_valset.clone(),
-                    old_valset.clone(),
-                    confirms,
-                    gravity_id,
-                )?
-                .into(),
+                encode_valset_update_payload(new_valset, old_valset, confirms, gravity_id)?.into(),
             ),
         })
         .await?;
@@ -114,8 +108,8 @@ pub async fn estimate_valset_cost(
 /// Encodes the payload bytes for the validator set update call, useful for
 /// estimating the cost of submitting a validator set
 pub fn encode_valset_update_payload(
-    new_valset: Valset,
-    old_valset: Valset,
+    new_valset: &Valset,
+    old_valset: &Valset,
     confirms: &[ValsetConfirmResponse],
     gravity_id: String,
 ) -> Result<Vec<u8>, GravityError> {

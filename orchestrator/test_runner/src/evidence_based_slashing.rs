@@ -51,8 +51,8 @@ pub async fn evidence_based_slashing(
     let gravity_id = get_gravity_id(gravity_address, eth_addr, web30)
         .await
         .unwrap();
-    let message = encode_valset_confirm(gravity_id.clone(), false_valset.clone());
-    let checkpoint = encode_valset_confirm_hashed(gravity_id.clone(), false_valset.clone());
+    let message = encode_valset_confirm(gravity_id.clone(), &false_valset);
+    let checkpoint = encode_valset_confirm_hashed(gravity_id.clone(), &false_valset);
     let eth_signature = eth_private_key.sign_ethereum_msg(&message);
     info!(
         "Created signature {} over checkpoint {} with Gravity ID {} using address {}",

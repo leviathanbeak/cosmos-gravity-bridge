@@ -47,7 +47,7 @@ pub async fn relayer_main_loop(
         let gravity_id = gravity_id.unwrap();
 
         relay_valsets(
-            current_valset.clone(),
+            &current_valset,
             ethereum_key,
             &web3,
             &mut grpc_client,
@@ -59,7 +59,7 @@ pub async fn relayer_main_loop(
         .await;
 
         relay_batches(
-            current_valset.clone(),
+            &current_valset,
             ethereum_key,
             &web3,
             &mut grpc_client,
@@ -71,7 +71,7 @@ pub async fn relayer_main_loop(
         .await;
 
         relay_logic_calls(
-            current_valset,
+            &current_valset,
             ethereum_key,
             &web3,
             &mut grpc_client,

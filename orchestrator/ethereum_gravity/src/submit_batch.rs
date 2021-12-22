@@ -14,7 +14,7 @@ use web30::{
 /// to submit the provided transaction batch
 #[allow(clippy::too_many_arguments)]
 pub async fn send_eth_transaction_batch(
-    current_valset: Valset,
+    current_valset: &Valset,
     batch: TransactionBatch,
     confirms: &[BatchConfirmResponse],
     web3: &Web3,
@@ -89,7 +89,7 @@ pub async fn send_eth_transaction_batch(
 
 /// Returns the cost in Eth of sending this batch
 pub async fn estimate_tx_batch_cost(
-    current_valset: Valset,
+    current_valset: &Valset,
     batch: TransactionBatch,
     confirms: &[BatchConfirmResponse],
     web3: &Web3,
@@ -123,7 +123,7 @@ pub async fn estimate_tx_batch_cost(
 
 /// Encodes the batch payload for both estimate_tx_batch_cost and send_eth_transaction_batch
 fn encode_batch_payload(
-    current_valset: Valset,
+    current_valset: &Valset,
     batch: &TransactionBatch,
     confirms: &[BatchConfirmResponse],
     gravity_id: String,
