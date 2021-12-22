@@ -185,7 +185,6 @@ pub async fn get_last_event_nonce_for_validator(
             address: address.to_bech32(prefix).unwrap(),
         })
         .await?;
-
     Ok(response.into_inner().event_nonce)
 }
 
@@ -266,6 +265,5 @@ pub async fn get_pending_send_to_eth(
             sender_address: sender_address.to_string(),
         })
         .await?;
-
     Ok(response.into_inner())
 }
