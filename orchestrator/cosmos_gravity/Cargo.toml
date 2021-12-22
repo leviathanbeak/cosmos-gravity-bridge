@@ -18,7 +18,7 @@ num256 = "0.3"
 prost-types = "0.7"
 serde = "1.0"
 sha3 = "0.9"
-tokio = "1.4"
+tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
 tonic = "0.4"
 web30 = {git = "ssh://git@github.com/leviathanbeak/web30.git"}
 

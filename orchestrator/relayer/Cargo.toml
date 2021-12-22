@@ -18,14 +18,14 @@ clarity = "0.5"
 deep_space = "2.4"
 docopt = "1"
 env_logger = "0.9"
+futures = "0.3.19"
 lazy_static = "1"
 log = "0.4"
 num256 = "0.3"
 openssl-probe = "0.1"
+rayon = "1.5.1"
 serde = "1.0"
 serde_derive = "1.0"
-tokio = "1.4"
+tokio = {version = "1.4", features = ["macros", "rt-multi-thread"]}
 tonic = "0.4"
 web30 = {git = "ssh://git@github.com/leviathanbeak/web30.git"}
-
-[dev-dependencies]
