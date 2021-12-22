@@ -109,9 +109,9 @@ pub async fn send_valset_confirms(
 
     let mut messages = Vec::new();
 
-    for valset in valsets {
+    for valset in &valsets {
         trace!("Submitting signature for valset {:?}", valset);
-        let message = encode_valset_confirm(gravity_id.clone(), valset.clone());
+        let message = encode_valset_confirm(gravity_id.clone(), valset);
         let eth_signature = eth_private_key.sign_ethereum_msg(&message);
         trace!(
             "Sending valset update with address {} and sig {}",

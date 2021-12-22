@@ -67,7 +67,7 @@ mod tests {
 
         let mut confirms = Vec::new();
         for key in keys {
-            let message = encode_valset_confirm(gravity_id.to_string(), valset1.clone());
+            let message = encode_valset_confirm(gravity_id.to_string(), &valset1);
             let eth_signature = key.sign_ethereum_msg(&message);
             confirms.push(ValsetConfirmResponse {
                 orchestrator: some_cosmos_address,
@@ -78,7 +78,7 @@ mod tests {
         }
 
         let encoded_update_bytes =
-            encode_valset_update_payload(valset1, valset0, &confirms, gravity_id.to_string())
+            encode_valset_update_payload(&valset1, &valset0, &confirms, gravity_id.to_string())
                 .unwrap();
 
         assert_eq!(

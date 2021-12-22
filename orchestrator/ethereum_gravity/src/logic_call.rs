@@ -11,7 +11,7 @@ use web30::{client::Web3, types::TransactionRequest};
 /// to submit the provided logic call
 #[allow(clippy::too_many_arguments)]
 pub async fn send_eth_logic_call(
-    current_valset: Valset,
+    current_valset: &Valset,
     call: LogicCall,
     confirms: &[LogicCallConfirmResponse],
     web3: &Web3,
@@ -90,7 +90,7 @@ pub async fn send_eth_logic_call(
 
 /// Returns the cost in Eth of sending this batch
 pub async fn estimate_logic_call_cost(
-    current_valset: Valset,
+    current_valset: &Valset,
     call: LogicCall,
     confirms: &[LogicCallConfirmResponse],
     web3: &Web3,
@@ -126,7 +126,7 @@ pub async fn estimate_logic_call_cost(
 
 /// Encodes the logic call payload for both cost estimation and submission to EThereum
 fn encode_logic_call_payload(
-    current_valset: Valset,
+    current_valset: &Valset,
     call: &LogicCall,
     confirms: &[LogicCallConfirmResponse],
     gravity_id: String,
@@ -313,7 +313,7 @@ mod tests {
         assert_eq!(
             bytes_to_hex_str(&encoded),
             bytes_to_hex_str(
-                &encode_logic_call_payload(valset, &logic_call, &[confirm], "foo".to_string())
+                &encode_logic_call_payload(&valset, &logic_call, &[confirm], "foo".to_string())
                     .unwrap()
             )
         );

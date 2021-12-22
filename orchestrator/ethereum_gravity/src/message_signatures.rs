@@ -8,7 +8,7 @@ use gravity_utils::types::{LogicCall, TransactionBatch, Valset};
 /// submitted to Cosmos, verified, and then relayed to Ethereum
 /// Note: This is the message, you need to run Keccak256::digest() in order to get the 32byte
 /// digest that is normally signed or may be used as a 'hash of the message'
-pub fn encode_valset_confirm(gravity_id: String, valset: Valset) -> Vec<u8> {
+pub fn encode_valset_confirm(gravity_id: String, valset: &Valset) -> Vec<u8> {
     let (eth_addresses, powers) = valset.filter_empty_addresses();
     let reward_token = if let Some(v) = valset.reward_token {
         v
@@ -21,12 +21,12 @@ pub fn encode_valset_confirm(gravity_id: String, valset: Valset) -> Vec<u8> {
         valset.nonce.into(),
         eth_addresses.into(),
         powers.into(),
-        valset.reward_amount.into(),
+        valset.reward_amount.clone().into(),
         reward_token.into(),
     ])
 }
 
-pub fn encode_valset_confirm_hashed(gravity_id: String, valset: Valset) -> Vec<u8> {
+pub fn encode_valset_confirm_hashed(gravity_id: String, valset: &Valset) -> Vec<u8> {
     let digest = encode_valset_confirm(gravity_id, valset);
     get_ethereum_msg_hash(&digest)
 }
@@ -148,7 +148,7 @@ mod test {
                 },
             ],
         };
-        let checkpoint = encode_valset_confirm("foo".to_string(), valset);
+        let checkpoint = encode_valset_confirm("foo".to_string(), &valset);
         let checkpoint_hash = Keccak256::digest(&checkpoint);
         assert_eq!(
             bytes_to_hex_str(&correct_hash),
@@ -187,7 +187,7 @@ mod test {
                 },
             ],
         };
-        let checkpoint = encode_valset_confirm("foo".to_string(), valset);
+        let checkpoint = encode_valset_confirm("foo".to_string(), &valset);
         let checkpoint_hash = Keccak256::digest(&checkpoint);
         assert_ne!(
             bytes_to_hex_str(&correct_hash),
