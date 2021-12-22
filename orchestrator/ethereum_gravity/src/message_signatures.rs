@@ -36,7 +36,7 @@ pub fn encode_valset_confirm_hashed(gravity_id: String, valset: &Valset) -> Vec<
 /// submitted to Cosmos, verified, and then relayed to Ethereum
 /// Note: This is the message, you need to run Keccak256::digest() in order to get the 32byte
 /// digest that is normally signed or may be used as a 'hash of the message'
-pub fn encode_tx_batch_confirm(gravity_id: String, batch: TransactionBatch) -> Vec<u8> {
+pub fn encode_tx_batch_confirm(gravity_id: String, batch: &TransactionBatch) -> Vec<u8> {
     let (amounts, destinations, fees) = batch.get_checkpoint_values();
     encode_tokens(&[
         Token::FixedString(gravity_id),
@@ -50,7 +50,7 @@ pub fn encode_tx_batch_confirm(gravity_id: String, batch: TransactionBatch) -> V
     ])
 }
 
-pub fn encode_tx_batch_confirm_hashed(gravity_id: String, batch: TransactionBatch) -> Vec<u8> {
+pub fn encode_tx_batch_confirm_hashed(gravity_id: String, batch: &TransactionBatch) -> Vec<u8> {
     let digest = encode_tx_batch_confirm(gravity_id, batch);
     get_ethereum_msg_hash(&digest)
 }
@@ -228,7 +228,7 @@ mod test {
             token_contract: erc20_addr,
         };
 
-        let checkpoint = encode_tx_batch_confirm("foo".to_string(), batch.clone());
+        let checkpoint = encode_tx_batch_confirm("foo".to_string(), &batch);
         let checkpoint_hash = Keccak256::digest(&checkpoint);
         assert_eq!(correct_hash.len(), checkpoint_hash.len());
         assert_eq!(correct_hash, checkpoint_hash.as_slice());
@@ -238,7 +238,7 @@ mod test {
         let secret: [u8; 32] = rng.gen();
         let eth_key = EthPrivateKey::from_slice(&secret).unwrap();
         let eth_address = eth_key.to_address();
-        let checkpoint = encode_tx_batch_confirm_hashed("foo".to_string(), batch);
+        let checkpoint = encode_tx_batch_confirm_hashed("foo".to_string(), &batch);
 
         let eth_signature = eth_key.sign_hash(&checkpoint);
 
@@ -281,7 +281,7 @@ mod test {
         let eth_key = EthPrivateKey::from_slice(&secret).unwrap();
         let eth_address = eth_key.to_address();
 
-        let checkpoint = encode_tx_batch_confirm_hashed("foo".to_string(), batch);
+        let checkpoint = encode_tx_batch_confirm_hashed("foo".to_string(), &batch);
 
         let eth_signature = eth_key.sign_hash(&checkpoint);
 

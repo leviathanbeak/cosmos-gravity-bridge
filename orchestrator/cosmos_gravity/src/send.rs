@@ -160,9 +160,9 @@ pub async fn send_batch_confirm(
 
     let mut messages = Vec::new();
 
-    for batch in transaction_batches {
+    for batch in &transaction_batches {
         trace!("Submitting signature for batch {:?}", batch);
-        let message = encode_tx_batch_confirm(gravity_id.clone(), batch.clone());
+        let message = encode_tx_batch_confirm(gravity_id.clone(), batch);
         let eth_signature = eth_private_key.sign_ethereum_msg(&message);
         trace!(
             "Sending batch update with address {} and sig {}",
